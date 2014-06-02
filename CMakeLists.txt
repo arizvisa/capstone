@@ -19,11 +19,13 @@ option(X86_SUPPORT "X86 support" ON)
 option(X86_REDUCE "X86 with reduce instruction sets to minimize library" OFF)
 # End of compile-time option
 # DO NOT modify anything below
+include(GenerateExportHeader)
 
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 1)
 set(VERSION_PATCH 2)
 
+## sources + definitions
 if (USE_SYS_DYN_MEM)
     add_definitions(-DCAPSTONE_USE_SYS_DYN_MEM)
 endif ()
@@ -160,12 +162,14 @@ if (X86_REDUCE)
     add_definitions(-DCAPSTONE_X86_REDUCE)
 endif ()
 
+## targets
 add_library(libcapstone_static STATIC ${SOURCES})
 add_library(libcapstone SHARED ${SOURCES})
+generate_export_header(libcapstone
+                       BASE_NAME capstone
+                       EXPORT_FILE_NAME ${PROJECT_SOURCE_DIR}/include/capstone-export.h)
 
-set_target_properties(libcapstone PROPERTIES
-                      VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
-                      SOVERSION ${VERSION_MAJOR})
+#include_directories("${PROJECT_SOURCE_DIR}/include")
 
 if (BUILD_TESTS)
     foreach (TSRC ${TEST_SOURCES})
@@ -175,6 +179,12 @@ if (BUILD_TESTS)
     endforeach ()
 endif ()
 
+## properties
+set_property(GLOBAL PROPERTY VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+set_property(GLOBAL PROPERTY SOVERSION ${VERSION_MAJOR})
+set_property(TARGET libcapstone_static PROPERTY COMPILE_FLAGS -DCAPSTONE_STATIC_DEFINE)
+
+## install
 set(INCLUDES arm64.h  arm.h  capstone.h  mips.h  ppc.h  x86.h sparc.h systemz.h xcore.h)
 foreach (INC ${INCLUDES})
     install(FILES "include/${INC}" DESTINATION include/capstone)

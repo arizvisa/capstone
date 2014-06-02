@@ -25,4 +25,7 @@ typedef unsigned char bool;
 #include <stdbool.h>
 #endif
 
+// cmake-generated header for exporting functions to a shared-objects
+#include "capstone-export.h"
+
 #endif
