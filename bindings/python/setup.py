@@ -10,7 +10,8 @@ from distutils import log
 from distutils import dir_util
 from distutils.command.build_clib import build_clib
 from distutils.command.sdist import sdist
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 from distutils.sysconfig import get_python_lib
 
 # prebuilt libraries for Windows - for sdist
@@ -19,8 +20,8 @@ PATH_LIB32 = "prebuilt/win32/capstone.dll"
 
 # package name can be 'capstone' or 'capstone-windows'
 PKG_NAME = 'capstone'
-if os.path.exists(PATH_LIB64) and os.path.exists(PATH_LIB32):
-    PKG_NAME = 'capstone-windows'
+#if os.path.exists(PATH_LIB64) and os.path.exists(PATH_LIB32):
+#    PKG_NAME = 'capstone-windows'
 
 VERSION = '3.0.4'
 SYSTEM = sys.platform
@@ -106,12 +107,12 @@ class custom_build_clib(build_clib):
 
     def build_libraries(self, libraries):
         if SYSTEM in ("win32", "cygwin"):
-            # if Windows prebuilt library is available, then include it
+            # if Windows prebuilt library is available, then skip building it
             if is_64bits and os.path.exists(PATH_LIB64):
-                SETUP_DATA_FILES.append(PATH_LIB64)
+#                SETUP_DATA_FILES.append(PATH_LIB64)
                 return
             elif os.path.exists(PATH_LIB32):
-                SETUP_DATA_FILES.append(PATH_LIB32)
+#                SETUP_DATA_FILES.append(PATH_LIB32)
                 return
 
         # build library from source if src/ is existent
@@ -159,6 +160,14 @@ class custom_build_clib(build_clib):
 def dummy_src():
     return []
 
+if SYSTEM in ("win32", "cygwin"):
+    # if Windows prebuilt library is available, then include it
+    if is_64bits and os.path.exists(PATH_LIB64):
+        SETUP_DATA_FILES.append(PATH_LIB64)
+    elif os.path.exists(PATH_LIB32):
+        SETUP_DATA_FILES.append(PATH_LIB32)
+    else:
+        raise LookupError, "Unable to locate prebuilt-binaries"
 
 setup(
     provides=['capstone'],
@@ -187,5 +196,6 @@ setup(
         ),
     )],
 
-    data_files=[(SITE_PACKAGES, SETUP_DATA_FILES)],
+#    data_files=[(SITE_PACKAGES, SETUP_DATA_FILES)],
+    data_files=[("../purelib/capstone", SETUP_DATA_FILES)],
 )
